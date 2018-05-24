@@ -63,7 +63,7 @@ function displayProduct(list){
 
 function shop(productTable) {
     console.log("Shop Init");
-    // console.table(tableData);
+    // console.table(productTable);
     inquirer.prompt([
         {
             name: "userSelection",
@@ -73,10 +73,17 @@ function shop(productTable) {
             message: ["What item would you like to buy"]
         }])
         .then(function(res) {
-            let selection = res.userSelection.split("-");
-            let selectionID = selection[0];
+            console.table(res);
+                 
 
-            // console.log(selection);
+            let selectionID = res.userSelection[0];
+            let selectionObj = res.userSelection.split(":");
+            let selectionName = selectionObj[1];
+               
+            
+            console.log("SelctionID equals: " +selectionID);
+            console.log("SelctionName equals: " + selectionName);        
+           
 
             inquirer.prompt({
                 name: "userQuantity",
@@ -85,45 +92,44 @@ function shop(productTable) {
             })
             .then(function(res) {
                 let quantityInt = res.userQuantity;
-                checkInventory(selectionID, quantityInt);
+                checkInventory(selectionID, quantityInt, selectionName);
             })
         })
 };
 
-function checkInventory(ID, QTY){
-    // console.log(QTY);
-    var stockCheck = "SELECT quantity from sellthisproduct where id = "+ID
-    console.log(ID);
+function checkInventory(selectionID, QTY, selectionName){
+    console.log("checkInventory selectionName=" + selectionName);
+    console.log("checkInventory Init");
+    var stockCheck = "SELECT quantity from sellthisproduct where id = "+selectionID
+    console.log("SelectionID is: " +selectionID);
+    console.log("user selected quantity: " + QTY);
     connection.query(stockCheck, function(err, res) {
+        // console.log("stockCheck=" +stockCheck);
+        // console.log("res:" +res[0].quantity);
         if (err) throw err;
-        let stockInt = res.quantity;
+        let stockInt = res[0].quantity;
+        console.log("stockInt=" + stockInt);
         if (QTY > stockInt) {
-            console.log("/nSold Out!");
-            displayProduct();
+            console.log("***** Sorry we only have " + stockInt + " of this item.  Please select a different quantity******");
+            getArray();
+            console.log("displayProduct Init");
         }
-        else goToCart(ID, QTY);
+        else goToCart(selectionID, QTY, selectionName);
+        // console.log("goToCart Callback Init");
+        
     })
-
 };
 
-function goToCart(ID, QTY){
+function goToCart(selectionID, QTY, selectionName){
+    console.log(selectionName);
+    connection.query("UPDATE sellthisproduct SET quantity = quantity - ? where id = ?", [QTY, selectionID]); {
+    };
+    console.log("You have purchased " + QTY + "" + selectionName + "'s! Thank you! Have a good day!");
+        
+};
 
-}
 
 
-// var selectionArray = [];
-// for (var i = 0; i < res.length; i++) {
-//     selectionArray.push(results[i].item_name);
-
-//     // Making selection array into an object:
-//         var selection = {
-//             id: res[i].id,
-//             item_name: res[i].item_name,
-//             sale_price: res[i].sale_price
-//         }
-//         selectionArray.push(selection);
-//     console.log(res[i]);
-         
 
 
 function end() {
@@ -139,11 +145,14 @@ function end() {
     connection.end();
 }
 
-// The first should ask them the ID of the product they would like to buy.
-// The second message should ask how many units of the product they would like to buy.
 
 // Issues: //
-// node isn't returning list of items to the buyer
+
 
 // Resolved Issues: //
 // Cannot see table in console/ installed console.table
+// node isn't returning list of items to the buyer/ fixed displayProduct functions
+// Multiple errors pulling the data correctly from mysql/ played with syntax for hours until correct values returned
+// callback to displayProduct function: Cannot read property 'forEach' of undefined at 52/ Replaced with getArray function
+// goToCart function error:  Error: ER_PARSE_ERROR: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '= quantity - '2' where id = '1'' at line 1 / missing SET from UPDATE table SET quantity
+// selectionName variable is being passed thru functions but is undefined at 124/ fixed by adding the missing param in a .then
