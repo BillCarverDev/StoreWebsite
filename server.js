@@ -28,25 +28,6 @@ function getArray() {
     };    
 
 
-// function requestOrders() {
-//     console.log("requestOrders init");
-//     inquirer.prompt({
-//         name: "buyStuff",
-//         type: "list",
-//         message:["Would you like to buy some crap?"],
-//         choices: ["YES", new inquirer.Separator(), "NO"],
-//     })
-//     .then(function(choice) {
-//         if (choice.buyStuff === "YES") {
-//             // shop(selectionArray);
-//             shop();
-//         }
-//         else if (choice.buyStuff === "NO"){
-//             end();
-//         }
-//     })
-// };
-
 function displayProduct(list){
     let productTable = [];
     list.forEach(table => {
@@ -62,7 +43,7 @@ function displayProduct(list){
 }
 
 function shop(productTable) {
-    console.log("Shop Init");
+    // console.log("Shop Init");
     // console.table(productTable);
     inquirer.prompt([
         {
@@ -81,8 +62,8 @@ function shop(productTable) {
             let selectionName = selectionObj[1];
                
             
-            console.log("SelctionID equals: " +selectionID);
-            console.log("SelctionName equals: " + selectionName);        
+            // console.log("SelctionID equals: " +selectionID);
+            // console.log("SelctionName equals: " + selectionName);        
            
 
             inquirer.prompt({
@@ -98,11 +79,11 @@ function shop(productTable) {
 };
 
 function checkInventory(selectionID, QTY, selectionName){
-    console.log("checkInventory selectionName=" + selectionName);
-    console.log("checkInventory Init");
+    // console.log("checkInventory selectionName=" + selectionName);
+    // console.log("checkInventory Init");
     var stockCheck = "SELECT quantity from sellthisproduct where id = "+selectionID
-    console.log("SelectionID is: " +selectionID);
-    console.log("user selected quantity: " + QTY);
+    // console.log("SelectionID is: " +selectionID);
+    // console.log("user selected quantity: " + QTY);
     connection.query(stockCheck, function(err, res) {
         // console.log("stockCheck=" +stockCheck);
         // console.log("res:" +res[0].quantity);
@@ -112,7 +93,7 @@ function checkInventory(selectionID, QTY, selectionName){
         if (QTY > stockInt) {
             console.log("***** Sorry we only have " + stockInt + " of this item.  Please select a different quantity******");
             getArray();
-            console.log("displayProduct Init");
+            // console.log("displayProduct Init");
         }
         else goToCart(selectionID, QTY, selectionName);
         // console.log("goToCart Callback Init");
@@ -121,29 +102,36 @@ function checkInventory(selectionID, QTY, selectionName){
 };
 
 function goToCart(selectionID, QTY, selectionName){
-    console.log(selectionName);
+    // console.log(selectionName);
     connection.query("UPDATE sellthisproduct SET quantity = quantity - ? where id = ?", [QTY, selectionID]); {
     };
-    console.log("You have purchased " + QTY + "" + selectionName + "'s! Thank you! Have a good day!");
-        
+    console.log("You have purchased " + QTY + "" + selectionName + "'s! Thank you!");
+    wrapup();        
 };
 
 
-
-
-
-function end() {
-    console.log("End init");
+function wrapup() {
     inquirer.prompt({
-        name: "news",
-        // type: "list",
+        name: "wrapup",
+        type: "list",
         // message: ("Before you go, would you like to save $50 on your next order?"),
-        message: ["You are now being redirected to the Washington Post"],
-        // choices: ["YES", new inquirer.Separator(), "NO"],
-    })
-    window.open("https://www.washingtonpost.com", '_blank');
-    connection.end();
-}
+        message: ["Would you like to purchase another item?"],
+        choices: ["YES", new inquirer.Separator(), "NO"],
+    }).then(function(res){
+        if (res.wrapup == "YES"){
+            console.log("Back to items list");
+            getArray();
+        } else {
+            console.log("Have a nice day!");
+            connection.end();
+        };
+    });
+    
+};
+
+// Demo:  https://drive.google.com/file/d/1ulgANuVfSkpF3R41pQrRdbAN9iJvfDH7/view?usp=sharing
+
+
 
 
 // Issues: //
